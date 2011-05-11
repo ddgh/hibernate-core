@@ -29,6 +29,7 @@ import org.hibernate.AnnotationException;
 import org.hibernate.AssertionFailure;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.ColumnTransformers;
+import org.hibernate.annotations.Default;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.cfg.annotations.Nullability;
@@ -72,7 +73,7 @@ public class Ejb3Column {
 	private String readExpression;
 	private String writeExpression;
 
-	public void setTable(Table table) {
+    public void setTable(Table table) {
 		this.table = table;
 	}
 
@@ -626,4 +627,8 @@ public class Ejb3Column {
 		sb.append( '}' );
 		return sb.toString();
 	}
+
+    public void setDefaultValueAnnotation(Default defaultValueAnnotation) {
+        mappingColumn.setDefaultValueAnnotation(defaultValueAnnotation);
+    }
 }

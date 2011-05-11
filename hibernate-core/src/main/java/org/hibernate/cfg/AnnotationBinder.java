@@ -80,6 +80,8 @@ import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.Version;
 
+import org.hibernate.annotations.*;
+import org.hibernate.type.LiteralType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,50 +90,6 @@ import org.hibernate.AssertionFailure;
 import org.hibernate.EntityMode;
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
-import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Check;
-import org.hibernate.annotations.CollectionId;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.DiscriminatorOptions;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchProfile;
-import org.hibernate.annotations.FetchProfiles;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.FilterDefs;
-import org.hibernate.annotations.Filters;
-import org.hibernate.annotations.ForceDiscriminator;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.GenericGenerators;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.LazyToOne;
-import org.hibernate.annotations.LazyToOneOption;
-import org.hibernate.annotations.ManyToAny;
-import org.hibernate.annotations.MapKeyType;
-import org.hibernate.annotations.NaturalId;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.OrderBy;
-import org.hibernate.annotations.ParamDef;
-import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Parent;
-import org.hibernate.annotations.Proxy;
-import org.hibernate.annotations.Sort;
-import org.hibernate.annotations.Source;
-import org.hibernate.annotations.Tuplizer;
-import org.hibernate.annotations.Tuplizers;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
-import org.hibernate.annotations.Where;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.XAnnotatedElement;
 import org.hibernate.annotations.common.reflection.XClass;
@@ -508,7 +466,7 @@ public final class AnnotationBinder {
 			Map<XClass, InheritanceState> inheritanceStatePerClass,
 			Mappings mappings) throws MappingException {
 		//@Entity and @MappedSuperclass on the same class leads to a NPE down the road
-		if ( clazzToProcess.isAnnotationPresent( Entity.class ) 
+		if ( clazzToProcess.isAnnotationPresent( Entity.class )
 				&&  clazzToProcess.isAnnotationPresent( MappedSuperclass.class ) ) {
 			throw new AnnotationException( "An entity cannot be annotated with both @Entity and @MappedSuperclass: "
 					+ clazzToProcess.getName() );
@@ -1791,6 +1749,7 @@ public final class AnnotationBinder {
 							mappings
 					);
 				}
+
 				{
 					Column[] keyColumns = null;
 					//JPA 2 has priority and has different default column values, differenciate legacy from JPA 2
@@ -2049,7 +2008,15 @@ public final class AnnotationBinder {
 						}
 					}
 
-					propertyBinder.setLazy( lazy );
+                    if (property.isAnnotationPresent(Default.class)) {
+                        Default defaultAnnotation = property.getAnnotation(Default.class);
+
+                        for (Ejb3Column column : columns) {
+                            column.setDefaultValueAnnotation(defaultAnnotation);
+                        }
+                    }
+
+                    propertyBinder.setLazy( lazy );
 					propertyBinder.setColumns( columns );
 					if ( isOverridden ) {
 						final PropertyData mapsIdProperty = BinderHelper.getPropertyOverriddenByMapperOrMapsId(
@@ -2059,7 +2026,6 @@ public final class AnnotationBinder {
 					}
 
 					propertyBinder.makePropertyValueAndBind();
-
 				}
 				if ( isOverridden ) {
 					final PropertyData mapsIdProperty = BinderHelper.getPropertyOverriddenByMapperOrMapsId(
@@ -2132,7 +2098,7 @@ public final class AnnotationBinder {
 	}
 
 	private static void setVersionInformation(XProperty property, PropertyBinder propertyBinder) {
-		propertyBinder.getSimpleValueBinder().setVersion( true );		
+		propertyBinder.getSimpleValueBinder().setVersion( true );
 		if(property.isAnnotationPresent( Source.class )) {
 			Source source = property.getAnnotation( Source.class );
 			propertyBinder.getSimpleValueBinder().setTimestampVersionType( source.value().typeName() );
