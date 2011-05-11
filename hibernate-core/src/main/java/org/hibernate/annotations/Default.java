@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface Default {
     String[] stringValue() default {};
     boolean[] booleanValue() default {};
+    String[] enumStringValue() default {};
 }

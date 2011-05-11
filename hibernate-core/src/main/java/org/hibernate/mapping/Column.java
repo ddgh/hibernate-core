@@ -31,6 +31,7 @@ import org.hibernate.dialect.function.SQLFunctionRegistry;
 import org.hibernate.engine.Mapping;
 import org.hibernate.sql.Template;
 import org.hibernate.type.LiteralType;
+import org.hibernate.type.StringType;
 import org.hibernate.util.StringHelper;
 
 import java.io.Serializable;
@@ -377,6 +378,8 @@ public class Column implements Selectable, Serializable, Cloneable {
             return convertDefaultValue(dialect, defaultValueAnnotation.stringValue()[0]);
         } else if (defaultValueAnnotation.booleanValue().length > 0) {
             return convertDefaultValue(dialect, defaultValueAnnotation.booleanValue()[0]);
+        } else if (defaultValueAnnotation.enumStringValue().length > 0) {
+            return new StringType().objectToSQLString(defaultValueAnnotation.enumStringValue()[0], dialect);
         } else {
             return null;
         }
